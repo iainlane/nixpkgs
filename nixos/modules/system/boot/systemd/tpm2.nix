@@ -61,6 +61,20 @@
           "systemd-tpm2-setup-early.service"
           "systemd-tpm2-setup.service"
         ];
+
+        # Replicate systemd's 20-systemd-stub.conf: copy stub-deposited
+        # credentials from /.extra/ to /run/systemd/. Works when the rootfs
+        # IS the initramfs (no switch-root, e.g. NixOS VM tests with tmpfs).
+        systemd.tmpfiles.settings."20-systemd-stub" = {
+          "/run/systemd/tpm2-pcr-signature.json".C = {
+            argument = "/.extra/tpm2-pcr-signature.json";
+            mode = "0444";
+          };
+          "/run/systemd/tpm2-pcr-public-key.pem".C = {
+            argument = "/.extra/tpm2-pcr-public-key.pem";
+            mode = "0444";
+          };
+        };
       }
     )
 
@@ -170,6 +184,21 @@
           "tpm2.target"
           "systemd-tpm2-setup-early.service"
         ];
+
+        # systemd's 20-systemd-stub.conf tmpfiles rule copies credentials
+        # deposited by the stub at /.extra/ to /run/systemd/ where
+        # systemd-cryptsetup and other consumers expect them. /run survives
+        # switch-root, so running this in the initrd is sufficient.
+        boot.initrd.systemd.tmpfiles.settings."20-systemd-stub" = {
+          "/run/systemd/tpm2-pcr-signature.json".C = {
+            argument = "/.extra/tpm2-pcr-signature.json";
+            mode = "0444";
+          };
+          "/run/systemd/tpm2-pcr-public-key.pem".C = {
+            argument = "/.extra/tpm2-pcr-public-key.pem";
+            mode = "0444";
+          };
+        };
 
         boot.initrd.availableKernelModules = [
           "tpm-tis"
