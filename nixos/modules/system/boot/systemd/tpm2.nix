@@ -62,6 +62,9 @@
           "systemd-tpm2-setup.service"
         ];
 
+        systemd.services.systemd-tpm2-setup-early.restartIfChanged = false;
+        systemd.services.systemd-tpm2-setup.restartIfChanged = false;
+
         # Replicate systemd's 20-systemd-stub.conf: copy stub-deposited
         # credentials from /.extra/ to /run/systemd/. Works when the rootfs
         # IS the initramfs (no switch-root, e.g. NixOS VM tests with tmpfs).
@@ -169,8 +172,14 @@
           "systemd-pcrphase.service"
           "systemd-pcrphase-sysinit.service"
         ];
-        systemd.services.systemd-pcrphase.wantedBy = [ "sysinit.target" ];
-        systemd.services.systemd-pcrphase-sysinit.wantedBy = [ "sysinit.target" ];
+        systemd.services.systemd-pcrphase = {
+          wantedBy = [ "sysinit.target" ];
+          restartIfChanged = false;
+        };
+        systemd.services.systemd-pcrphase-sysinit = {
+          wantedBy = [ "sysinit.target" ];
+          restartIfChanged = false;
+        };
       }
     )
 
